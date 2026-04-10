@@ -8,6 +8,7 @@ on:
 jobs:
   post:
     runs-on: ubuntu-latest
+    environment: frodo_x_bot
 
     steps:
       - name: Checkout
