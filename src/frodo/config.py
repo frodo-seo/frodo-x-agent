@@ -31,7 +31,7 @@ class Config:
             x_api_secret=os.getenv("X_API_SECRET"),
             x_access_token=os.getenv("X_ACCESS_TOKEN"),
             x_access_token_secret=os.getenv("X_ACCESS_TOKEN_SECRET"),
-            model_id=os.getenv("MODEL_ID", "gemini-3.1-flash-lite-preview"),
+            model_id=os.getenv("MODEL_ID") or "gemini-3.1-flash-lite-preview",
         )
 
     def can_post_to_x(self) -> bool:
