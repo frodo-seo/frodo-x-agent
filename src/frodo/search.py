@@ -37,6 +37,17 @@ class NagneSearch:
         )
         return result.get("results", [])
 
+    def search_any(self, query: str, max_results: int = 4) -> list[dict]:
+        """Unrestricted global search — used by fact-checker to verify claims
+        against any credible source, not just our US domain list.
+        Uses basic depth (1 credit) since we only need existence confirmation."""
+        result = self.client.search(
+            query=query,
+            search_depth="basic",
+            max_results=max_results,
+        )
+        return result.get("results", [])
+
     def discover_headlines(self, max_per_feed: int = 10) -> list[dict]:
         """Fetch today's top US headlines via Google News RSS.
 

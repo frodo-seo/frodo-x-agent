@@ -86,11 +86,38 @@ def draft_one(topic: str, search: NagneSearch, llm: LLMClient) -> PostResult:
     )
 
 
+TOPIC_BUFFER_MULTIPLIER = 4  # select n*4 candidates to absorb fact-check failures
+
+
 def draft_brief(
     search: NagneSearch, llm: LLMClient, n: int = 3
 ) -> list[PostResult]:
-    """Discover top stories of the day and run the pipeline on each."""
+    """Discover top stories and run the pipeline until n posts pass fact-check.
+
+    Curator selects n * TOPIC_BUFFER_MULTIPLIER candidates upfront. We process
+    them one by one and stop as soon as n pass. Failed topics are collected but
+    not returned unless we ran out of candidates before filling the quota.
+    """
     headlines = search.discover_headlines()
     covered = post_log.recent_topics()
-    topics = select_topics(headlines, llm, n=n, covered_recently=covered)
-    return [draft_one(topic, search, llm) for topic in topics]
+    candidates = select_topics(
+        headlines, llm, n=n * TOPIC_BUFFER_MULTIPLIER, covered_recently=covered
+    )
+
+    passed: list[PostResult] = []
+    failed: list[PostResult] = []
+
+    for topic in candidates:
+        if len(passed) >= n:
+            break
+        result = draft_one(topic, search, llm)
+        if result.final_issues:
+            print(f"  [skip] {topic}: {result.final_issues[0]}")
+            failed.append(result)
+        else:
+            passed.append(result)
+
+    if len(passed) < n:
+        print(f"  [warn] 목표 {n}개 중 {len(passed)}개만 통과 (후보 {len(candidates)}개 소진)")
+
+    return passed

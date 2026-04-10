@@ -49,7 +49,7 @@ def _extract_claims(text: str, llm: LLMClient) -> list[str]:
 
 def _verify_claim(claim: str, search: NagneSearch, llm: LLMClient) -> str:
     """Verify a single claim. Returns 'verified', 'unverified', or 'contradicted'."""
-    results = search.search_topic(claim, max_results=4)
+    results = search.search_any(claim, max_results=4)
 
     if not results:
         return "unverified"
