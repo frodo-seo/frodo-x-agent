@@ -47,8 +47,11 @@ def draft_one(topic: str, search: NagneSearch, llm: LLMClient) -> PostResult:
         if not all_issues:
             # Final gate: fact-check before accepting the post.
             fc = fact_check(full_text, search, llm)
-            if not fc.passed:
-                fc_issues = [f"팩트체크 실패 — 반박된 주장: {c}" for c in fc.contradicted]
+            fc_issues = (
+                [f"팩트체크 실패 — 반박된 주장: {c}" for c in fc.contradicted]
+                + [f"팩트체크 실패 — 검증 불가 주장: {c}" for c in fc.unverified]
+            )
+            if fc_issues:
                 return PostResult(
                     topic=topic,
                     brief=brief,
@@ -56,9 +59,6 @@ def draft_one(topic: str, search: NagneSearch, llm: LLMClient) -> PostResult:
                     revisions=attempt,
                     final_issues=fc_issues,
                 )
-            if fc.unverified:
-                # Unverified claims are logged but don't block posting.
-                print(f"  [factcheck] 검증 불가 주장 (포스팅은 진행): {fc.unverified}")
 
             post_log.save(topic, brief.headline, full_text)
             return PostResult(
