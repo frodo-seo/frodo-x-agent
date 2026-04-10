@@ -1,3 +1,6 @@
+# Nagne post log (local runtime data)
+posts_log.jsonl
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
