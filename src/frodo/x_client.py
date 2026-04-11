@@ -1,5 +1,7 @@
 import tweepy
 
+from .validators import X_MAX_WEIGHTED, x_weighted_length
+
 
 class XClient:
     def __init__(
@@ -17,7 +19,10 @@ class XClient:
         )
 
     def post(self, text: str) -> str:
-        if len(text) > 280:
-            raise ValueError(f"Tweet exceeds 280 chars: {len(text)}")
+        weighted = x_weighted_length(text)
+        if weighted > X_MAX_WEIGHTED:
+            raise ValueError(
+                f"Tweet exceeds {X_MAX_WEIGHTED} weighted chars: {weighted}"
+            )
         response = self.client.create_tweet(text=text)
         return response.data["id"]

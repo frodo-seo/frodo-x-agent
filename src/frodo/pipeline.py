@@ -47,10 +47,9 @@ def draft_one(topic: str, search: NagneSearch, llm: LLMClient) -> PostResult:
         if not all_issues:
             # Final gate: fact-check before accepting the post.
             fc = fact_check(full_text, search, llm)
-            fc_issues = (
-                [f"팩트체크 실패 — 반박된 주장: {c}" for c in fc.contradicted]
-                + [f"팩트체크 실패 — 검증 불가 주장: {c}" for c in fc.unverified]
-            )
+            fc_issues = [
+                f"팩트체크 실패 — 반박된 주장: {c}" for c in fc.contradicted
+            ]
             if fc_issues:
                 return PostResult(
                     topic=topic,
@@ -60,7 +59,6 @@ def draft_one(topic: str, search: NagneSearch, llm: LLMClient) -> PostResult:
                     final_issues=fc_issues,
                 )
 
-            post_log.save(topic, brief.headline, full_text)
             return PostResult(
                 topic=topic,
                 brief=brief,
@@ -86,7 +84,7 @@ def draft_one(topic: str, search: NagneSearch, llm: LLMClient) -> PostResult:
     )
 
 
-TOPIC_BUFFER_MULTIPLIER = 4  # select n*4 candidates to absorb fact-check failures
+TOPIC_BUFFER_MULTIPLIER = 6  # select n*6 candidates to absorb failures
 
 
 def draft_brief(
@@ -110,7 +108,11 @@ def draft_brief(
     for topic in candidates:
         if len(passed) >= n:
             break
-        result = draft_one(topic, search, llm)
+        try:
+            result = draft_one(topic, search, llm)
+        except Exception as e:
+            print(f"  [error] {topic}: {type(e).__name__} — {e}")
+            continue
         if result.final_issues:
             print(f"  [skip] {topic}: {result.final_issues[0]}")
             failed.append(result)

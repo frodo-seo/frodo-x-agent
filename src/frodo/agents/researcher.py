@@ -41,15 +41,15 @@ def extract_brief(
     "사실 3"
   ],
   "outlets": ["WSJ", "Fox", "..."],
-  "korean_angle": "이 뉴스가 한국에 의미하는 것 한 문장. 반도체/자동차/동맹/환율/북한/중국/무역/에너지 중 어디로 떨어지는지.",
-  "angle_strength": "strong",
+  "korean_angle": "한국과 자연스러운 연결고리가 있으면 한 문장. 없으면 빈 문자열.",
+  "angle_strength": "strong | weak | none",
   "source_url": "가장 권위 있는 원본 기사 URL (검색 결과 중 하나)"
 }}
 
 규칙:
 - 검색 결과에 없는 사실은 절대 추가하지 마라.
 - key_facts는 2~4개. 각각 검색 결과에서 검증 가능해야 한다.
-- 한국 연결고리가 약하면 angle_strength를 "weak"로, 명확하면 "strong"으로.
+- 한국 연결고리가 명확하면 "strong", 약하면 "weak", 없으면 "none"으로.
 - JSON만 출력. 다른 텍스트 금지."""
 
     raw = llm.generate(_RESEARCHER_SYSTEM, prompt)

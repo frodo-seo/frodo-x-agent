@@ -1,12 +1,12 @@
 """Fact-checker agent — final gate before posting.
 
-Two-step process:
+Three-step process:
   1. LLM extracts the 2-3 most specific, verifiable claims from the draft.
   2. Tavily searches each claim independently.
   3. LLM verdicts whether each claim is supported, unverified, or contradicted.
 
-If any claim is contradicted → passed=False → pipeline skips posting.
-Unverified claims (search found nothing) are flagged but don't block by default.
+Contradicted claims block posting (passed=False).
+Unverified claims are warned but allowed — fresh news often isn't indexed yet.
 """
 
 from ..llm import LLMClient
@@ -66,15 +66,18 @@ def _verify_claim(claim: str, search: NagneSearch, llm: LLMClient) -> str:
 
 이 검색 결과를 기반으로 위 주장이 사실인지 판단하라.
 
+판정 기준 (매우 중요):
+- **contradicted는 극히 드물어야 한다.** 검색 결과가 주장과 정반대인 경우만 해당한다.
+  예: 주장 "A가 사임했다" → 검색 "A는 현재 재직 중" = contradicted
+- 검색에서 정확히 같은 표현을 못 찾았거나, 숫자/날짜가 약간 다르거나, 관련 결과가 부족하면 = unverified
+- 검색 결과가 주장의 핵심 내용을 뒷받침하면 = verified
+- **의심스러우면 unverified로 판정하라. contradicted가 아니라.**
+
 JSON 출력:
 {{
   "verdict": "verified" | "unverified" | "contradicted",
   "reason": "한 문장 이유"
-}}
-
-- verified: 검색 결과가 주장을 직접 뒷받침함
-- unverified: 관련 결과가 없거나 확인 불가
-- contradicted: 검색 결과가 주장과 명백히 다르거나 반박함"""
+}}"""
 
     raw = llm.generate(_VERDICT_SYSTEM, prompt)
     data = parse_json_loose(raw)
@@ -102,6 +105,8 @@ def fact_check(text: str, search: NagneSearch, llm: LLMClient) -> FactCheckResul
         else:
             unverified.append(claim)
 
+    if unverified:
+        print(f"  [warn] 팩트체크 — 검증 불가 주장 (통과): {unverified}")
     passed = len(contradicted) == 0
 
     return FactCheckResult(

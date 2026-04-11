@@ -34,7 +34,7 @@ _RHETORICAL_ENDINGS = (
 
 X_MAX_WEIGHTED = 280
 X_URL_WEIGHT = 23   # X wraps every URL to t.co — fixed cost regardless of length
-KO_SOFT_LIMIT_CHARS = 115  # for messaging; real check uses weighted length
+KO_TEXT_LIMIT = 120  # hard limit for text body (excluding URL)
 
 _URL_PATTERN = re.compile(r"https?://\S+")
 
@@ -51,6 +51,11 @@ def x_weighted_length(text: str) -> int:
     return sum(2 if c >= "\u1100" else 1 for c in normalized)
 
 
+def _text_without_urls(text: str) -> str:
+    """Strip URLs from text to measure body length only."""
+    return _URL_PATTERN.sub("", text).strip()
+
+
 def find_issues(text: str) -> list[str]:
     """Return a list of human-readable issues. Empty list = clean draft."""
     issues: list[str] = []
@@ -58,8 +63,14 @@ def find_issues(text: str) -> list[str]:
     weighted = x_weighted_length(text)
     if weighted > X_MAX_WEIGHTED:
         issues.append(
-            f"글자수 초과: {weighted} weighted chars (한도 {X_MAX_WEIGHTED}). "
-            f"한국어 기준 약 {KO_SOFT_LIMIT_CHARS}자까지."
+            f"글자수 초과: {weighted} weighted chars (한도 {X_MAX_WEIGHTED})."
+        )
+
+    body = _text_without_urls(text)
+    body_len = len(body)
+    if body_len > KO_TEXT_LIMIT:
+        issues.append(
+            f"본문 글자수 초과: {body_len}자 (한도 {KO_TEXT_LIMIT}자). 문장을 줄여라."
         )
 
     found_emojis = "".join(sorted(set(_EMOJI_PATTERN.findall(text))))

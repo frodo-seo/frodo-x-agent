@@ -27,12 +27,17 @@ def review_post(post: str, brief: NewsBrief, llm: LLMClient) -> EditorReview:
 == 작성된 포스트 ==
 {post}
 
-검토 항목:
-1. 톤: Nagne는 "가볍고 약간 도발적, 단정적, 반말, 똑똑한 친구가 던지는 한 마디" 톤이다. 너무 점잖거나 통신사 같은가?
-2. hedge 표현: "~일 수도", "~로 보인다", "~할 가능성", "~하는 듯" 같은 약한 표현이 있는가?
-3. 한국 연결고리: 본문에 한국과의 연결이 명시적으로 드러나는가? (반도체/자동차/동맹/환율/북한/중국/무역/에너지)
-4. 사실 정합성: 포스트의 모든 사실/숫자/인명이 브리프에서 검증되는가? 환각이 있는가?
-5. 출처 인용: 매체명이 본문에 자연스럽게 한 번 이상 인용되었는가?
+검토 항목을 **hard issue**(반드시 수정)와 **soft issue**(권장 수정)로 구분하라.
+
+hard issue (하나라도 있으면 passed: false):
+- 명백한 환각: 브리프에 없는 사실/숫자/인명을 만들어낸 경우만. "공습 vs 군사작전" 같은 표현 차이나 시제 차이는 환각이 아니다.
+- 출처 인용: 매체명이 본문에 한 번도 인용되지 않았는가?
+- hedge 표현: "~일 수도", "~로 보인다", "~할 가능성" 같은 약한 표현이 있는가?
+
+soft issue (있어도 passed: true, suggestions에만 기록):
+- 톤이 약간 점잖거나 통신사 톤에 가까움
+- 브리프 표현과 미세한 뉘앙스 차이 (차단 사유 아님)
+- 한국 연결고리가 자연스럽게 들어갈 수 있는데 빠져 있음
 
 JSON만 출력:
 {{
@@ -41,7 +46,7 @@ JSON만 출력:
   "suggestions": []
 }}
 
-문제 있으면 passed: false, issues에 발견된 문제, suggestions에 구체적 수정 방향."""
+hard issue가 있으면 passed: false + issues에 기록. soft issue만 있으면 passed: true + suggestions에 기록."""
 
     raw = llm.generate(_EDITOR_SYSTEM, prompt)
     data = parse_json_loose(raw)

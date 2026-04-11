@@ -3,6 +3,7 @@ import argparse
 from .config import Config
 from .llm import LLMClient
 from .models import PostResult
+from . import post_log
 from .pipeline import draft_brief, draft_one
 from .search import NagneSearch
 from .validators import x_weighted_length
@@ -27,15 +28,16 @@ def _print_result(result: PostResult) -> None:
             print(f"    - {issue}")
 
 
-def _post_or_skip(result: PostResult, cfg: Config, do_post: bool) -> None:
+def _save_and_post(result: PostResult, cfg: Config, do_post: bool) -> None:
+    if result.final_issues or not result.text or not result.brief:
+        if do_post:
+            print("  → skipped (issues remain)")
+        return
+
     if not do_post:
+        post_log.save(result.topic, result.brief.headline, result.text, posted=False)
         return
-    if result.final_issues:
-        print("  → skipped (issues remain)")
-        return
-    if not result.text:
-        print("  → skipped (empty)")
-        return
+
     if not cfg.can_post_to_x():
         raise RuntimeError(
             "Posting requires X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET."
@@ -47,6 +49,7 @@ def _post_or_skip(result: PostResult, cfg: Config, do_post: bool) -> None:
         cfg.x_access_token_secret,  # type: ignore[arg-type]
     )
     tweet_id = x.post(result.text)
+    post_log.save(result.topic, result.brief.headline, result.text, posted=True)
     print(f"  → posted: https://x.com/i/web/status/{tweet_id}")
 
 
@@ -59,6 +62,7 @@ def main() -> None:
     draft_cmd = sub.add_parser("draft", help="Draft one post on a specific topic.")
     draft_cmd.add_argument("topic", help="Topic or headline to write about.")
     draft_cmd.add_argument("--post", action="store_true", help="Publish to X.")
+    draft_cmd.add_argument("--force", action="store_true", help="Ignore dedup check.")
 
     brief_cmd = sub.add_parser(
         "brief", help="Auto-discover today's top stories and draft each."
@@ -72,12 +76,18 @@ def main() -> None:
 
     cfg = Config.from_env()
     search = NagneSearch(cfg.tavily_api_key)
-    llm = LLMClient(cfg.google_api_key, cfg.model_id)
+    llm = LLMClient(cfg.anthropic_api_key, cfg.model_id)
 
     if args.command == "draft":
+        covered = post_log.recent_topics()
+        topic_lower = args.topic.lower()
+        duplicate = any(topic_lower in c.lower() or c.lower() in topic_lower for c in covered)
+        if duplicate and not args.force:
+            print(f"  [skip] '{args.topic}'은 최근 다룬 토픽과 유사 (dedup). --force로 무시 가능.")
+            return
         result = draft_one(args.topic, search, llm)
         _print_result(result)
-        _post_or_skip(result, cfg, args.post)
+        _save_and_post(result, cfg, args.post)
 
     elif args.command == "brief":
         results = draft_brief(search, llm, n=args.n)
@@ -86,7 +96,7 @@ def main() -> None:
             return
         for result in results:
             _print_result(result)
-            _post_or_skip(result, cfg, args.post)
+            _save_and_post(result, cfg, args.post)
 
     if not args.post:
         print("\n(Dry run. Pass --post to publish.)")

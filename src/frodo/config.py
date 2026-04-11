@@ -8,7 +8,7 @@ load_dotenv()
 
 @dataclass(frozen=True)
 class Config:
-    google_api_key: str
+    anthropic_api_key: str
     tavily_api_key: str
     x_api_key: str | None
     x_api_secret: str | None
@@ -25,13 +25,13 @@ class Config:
             return value
 
         return cls(
-            google_api_key=required("GOOGLE_API_KEY"),
+            anthropic_api_key=required("ANTHROPIC_API_KEY"),
             tavily_api_key=required("TAVILY_API_KEY"),
             x_api_key=os.getenv("X_API_KEY"),
             x_api_secret=os.getenv("X_API_SECRET"),
             x_access_token=os.getenv("X_ACCESS_TOKEN"),
             x_access_token_secret=os.getenv("X_ACCESS_TOKEN_SECRET"),
-            model_id=os.getenv("MODEL_ID") or "gemini-3.1-flash-lite-preview",
+            model_id=os.getenv("MODEL_ID") or "claude-sonnet-4-6",
         )
 
     def can_post_to_x(self) -> bool:

@@ -45,8 +45,19 @@ def fetch_headlines(
     seen: set[str] = set()
     results: list[dict] = []
 
+    failed_feeds: list[str] = []
+
     for url in urls:
-        feed = feedparser.parse(url)
+        try:
+            feed = feedparser.parse(url)
+        except Exception:
+            failed_feeds.append(url)
+            continue
+
+        if feed.bozo and not feed.entries:
+            failed_feeds.append(url)
+            continue
+
         feed_name = feed.feed.get("title", "Google News")
 
         for entry in feed.entries[:max_per_feed]:
@@ -65,5 +76,10 @@ def fetch_headlines(
                     "source": feed_name,
                 }
             )
+
+    if failed_feeds:
+        print(f"  [warn] RSS 피드 {len(failed_feeds)}/{len(urls)}개 실패: {failed_feeds}")
+    if not results:
+        print("  [error] 모든 RSS 피드에서 헤드라인을 가져오지 못함")
 
     return results
