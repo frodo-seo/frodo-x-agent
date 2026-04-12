@@ -4,7 +4,7 @@ Flow per topic:
     Tavily search → Researcher → Writer → (Validator + Editor) → revise loop
 """
 
-from .agents import extract_brief, fact_check, review_post, select_topics, write_post
+from .agents import extract_brief, fact_check, is_duplicate, review_post, select_topics, write_post
 from .llm import LLMClient
 from .models import PostResult
 from . import post_log
@@ -115,6 +115,9 @@ def draft_brief(
             continue
         if result.final_issues:
             print(f"  [skip] {topic}: {result.final_issues[0]}")
+            failed.append(result)
+        elif passed and is_duplicate(result.text, [p.text for p in passed], llm):
+            print(f"  [skip] {topic}: 기존 통과 포스트와 내용 중복")
             failed.append(result)
         else:
             passed.append(result)

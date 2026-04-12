@@ -17,7 +17,8 @@ Google News RSS → Curator → per topic:
 - **Writer** drafts a post in Nagne's casual Korean voice (115 char limit)
 - **Editor** (LLM) + **Validator** (deterministic) catch tone/fact/format issues and loop back
 - **Fact-Checker** verifies claims via Tavily; contradicted claims block posting
-- Buffer strategy: selects `n x 4` candidates to absorb failures
+- **Dedup** (LLM) checks each passed post against prior accepted posts in the same run — same underlying story = skip, even if the angle differs
+- Buffer strategy: selects `n x 6` candidates to absorb failures and dedup skips
 
 ## Persona
 
