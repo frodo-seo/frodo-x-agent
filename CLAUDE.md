@@ -1,7 +1,7 @@
 # Nagne X Bot — Project Guide for Claude
 
 ## What this is
-Automated X account that posts 3 daily Korean-language news summaries sourced from US center-right media. Targets Korean morning readers who want US/global news with Korean context. Runs via GitHub Actions at 7AM KST daily.
+Automated X account that posts 1 daily Korean-language news summary focused on **US stocks and crypto**. Targets Korean retail investors (서학개미·코인러) who want market-moving news before the day starts. Runs via GitHub Actions at 7AM KST daily.
 
 ## Stack
 - **LLM:** Claude Sonnet via `anthropic` — `ANTHROPIC_API_KEY`

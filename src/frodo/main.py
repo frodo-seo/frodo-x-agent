@@ -68,7 +68,7 @@ def main() -> None:
         "brief", help="Auto-discover today's top stories and draft each."
     )
     brief_cmd.add_argument(
-        "-n", type=int, default=3, help="How many stories to brief (default 3)."
+        "-n", type=int, default=1, help="How many stories to brief (default 1)."
     )
     brief_cmd.add_argument("--post", action="store_true", help="Publish to X.")
 

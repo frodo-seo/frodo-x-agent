@@ -11,11 +11,12 @@ import feedparser
 # Google News public RSS feeds, US edition.
 # These refresh roughly every 15 minutes.
 FEEDS = {
-    "top":        "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en",
-    "politics":   "https://news.google.com/rss/headlines/section/topic/POLITICS?hl=en-US&gl=US&ceid=US:en",
     "business":   "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en",
-    "world":      "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en",
     "technology": "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=en-US&gl=US&ceid=US:en",
+    "stocks":     "https://news.google.com/rss/search?q=stock+market+OR+S%26P+500+OR+Nasdaq+OR+earnings+when:1d&hl=en-US&gl=US&ceid=US:en",
+    "fed":        "https://news.google.com/rss/search?q=Federal+Reserve+OR+Powell+OR+rates+OR+inflation+OR+CPI+when:1d&hl=en-US&gl=US&ceid=US:en",
+    "crypto":     "https://news.google.com/rss/search?q=bitcoin+OR+ethereum+OR+crypto+OR+SEC+ETF+OR+stablecoin+when:1d&hl=en-US&gl=US&ceid=US:en",
+    "bigtech":    "https://news.google.com/rss/search?q=Nvidia+OR+Tesla+OR+Apple+OR+Microsoft+OR+Meta+OR+Google+earnings+when:1d&hl=en-US&gl=US&ceid=US:en",
 }
 
 _HTML_TAG = re.compile(r"<[^>]+>")
