@@ -1,8 +1,6 @@
 name: Nagne Daily Brief
 
 on:
-  schedule:
-    - cron: "0 22 * * *"  # 매일 오전 7시 KST (= 22:00 UTC)
   workflow_dispatch:        # 수동 실행 버튼 (테스트용)
 
 jobs:
